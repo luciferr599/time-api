@@ -6,6 +6,6 @@
     "dev": "vercel dev"
   },
   "dependencies": {
-    "axios": "^0.21.1" // atau versi terbaru
+    "axios": "^0.21.1" 
   }
 }
