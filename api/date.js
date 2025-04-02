@@ -5,5 +5,7 @@ export default function handler(req, res) {
     const day = String(currentDate.getDate()).padStart(2, '0');
     const formattedDate = `${year}-${month}-${day}`;
 
-    res.status(200).json({ date: formattedDate });
+    // Mengembalikan tanggal dalam format teks biasa
+    res.setHeader('Content-Type', 'text/plain');
+    res.status(200).send(formattedDate);
 }
