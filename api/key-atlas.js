@@ -7,6 +7,11 @@ export default async function handler(req, res) {
         // Fetch the gist data
         const gistResponse = await axios.get(`https://api.github.com/gists/${gistId}`);
         
+        // Check if the gist has files
+        if (!gistResponse.data.files || Object.keys(gistResponse.data.files).length === 0) {
+            return res.status(404).send('No files found in the gist.');
+        }
+
         // Extract the raw URL from the gist data
         const rawUrl = gistResponse.data.files[Object.keys(gistResponse.data.files)[0]].raw_url;
 
