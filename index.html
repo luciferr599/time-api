@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Key Manager</title>
+    <script>
+        const keyViewerApi = "https://time-api-indol.vercel.app/api/key-viewer.js";
+        const keyPatchApi = "https://time-api-indol.vercel.app/api/key-patch.js";
+        const gistId = "b50b5caee29f4d4cd2d645e6d6a92fd5";
+        const token = "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";
+        const fileName = "STARC";
+
+        function addKey(newKey) {
+            fetch(`${keyViewerApi}?gistId=${gistId}`)
+                .then(response => response.text())
+                .then(oldContent => {
+                    const newContent = oldContent + "\n" + newKey;
+                    const escapedContent = encodeURIComponent(newContent);
+                    const payload = JSON.stringify({
+                        gistId: gistId,
+                        fileName: fileName,
+                        content: escapedContent,
+                        token: token
+                    });
+                    fetch(keyPatchApi, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: payload
+                    })
+                    .then(response => response.text())
+                    .catch(err => console.error('Error adding key:', err));
+                })
+                .catch(err => console.error('Error fetching current content:', err));
+        }
+
+        function delKey(keyToDelete) {
+            fetch(`${keyViewerApi}?gistId=${gistId}`)
+                .then(response => response.text())
+                .then(oldContent => {
+                    const newContent = oldContent.split("\n").filter(line => line !== keyToDelete).join("\n");
+                    const escapedContent = encodeURIComponent(newContent);
+                    const payload = JSON.stringify({
+                        gistId: gistId,
+                        fileName: fileName,
+                        content: escapedContent,
+                        token: token
+                    });
+                    fetch(keyPatchApi, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: payload
+                    })
+                    .then(response => response.text())
+                    .catch(err => console.error('Error deleting key:', err));
+                })
+                .catch(err => console.error('Error fetching current content:', err));
+        }
+    </script>
+</head>
+<body>
+    <h1>Key Manager</h1>
+    <input type="text" id="keyInput" placeholder="Enter key" />
+    <button onclick="addKey(document.getElementById('keyInput').value)">Add Key</button>
+    <button onclick="delKey(document.getElementById('keyInput').value)">Delete Key</button>
+</body>
+</html>
