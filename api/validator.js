@@ -12,10 +12,10 @@ export default async function handler(req, res) {
   try {
     // Fetch stringDatabase from keyViewer API
     const response = await fetch(keyViewerApi);
-    const { data } = await response.json();
+    const stringDatabase = await response.text();  // Get raw text, not JSON
 
     // Find the result line that matches the input token
-    const result = data.split('\n').find(line => line.startsWith(input_token));
+    const result = stringDatabase.split('\n').find(line => line.startsWith(input_token));
     if (!result) {
       return res.status(400).send('Wrong key');
     }
