@@ -1,47 +1,45 @@
-// api/validator.js
+const axios = require('axios');
+
+const keyViewerApi = "https://time-api-indol.vercel.app/api/key-viewer.js";
+const apiUrl = "https://time-api-indol.vercel.app/api/date.js";
 
 export default async function handler(req, res) {
-  const { input_token, gistId } = req.query;
+    const { token, gistId } = req.query;
 
-  // Validasi parameter input_token dan gistId
-  if (!input_token || !gistId) {
-    return res.status(400).send('Both token and gistId are required');
-  }
-
-  const keyViewerApi = `https://time-api-indol.vercel.app/api/key-viewer.js?gistId=${gistId}`;
-  const timeApi = 'https://time-api-indol.vercel.app/api/date.js';
-
-  try {
-    // Mengambil string database dari keyViewerApi sebagai raw text (CSV)
-    const response = await fetch(keyViewerApi);
-    const stringDatabase = await response.text(); // Mendapatkan data dalam format raw text (CSV)
-
-    // Mencari baris yang sesuai dengan input_token
-    const result = stringDatabase.split('\n').find(line => line.startsWith(input_token));
-    if (!result) {
-      return res.status(400).send('Wrong key');
+    // Pastikan token dan gistId ada
+    if (!token || !gistId) {
+        return res.status(400).send('Both token and gistId are required as query parameters.');
     }
 
-    // Memecah hasil berdasarkan koma untuk mendapatkan okey, oname, oexp, ostatus
-    const [okey, oname, oexp, ostatus] = result.split(',');
+    try {
+        // Fetch the gist data using the provided gistId
+        const response = await axios.get(`${keyViewerApi}?gistId=${gistId}`);
+        const stringDatabase = response.data;
 
-    // Memeriksa apakah statusnya "admin"
-    if (ostatus !== 'admin') {
-      // Ambil tanggal saat ini dari API time
-      const currentDateResponse = await fetch(timeApi);
-      const { current_date } = await currentDateResponse.json();
+        // Find the matching token in the stringDatabase
+        const result = stringDatabase.split('\n').find(line => line.startsWith(`${token},`));
 
-      // Cek apakah tanggal kedaluwarsa sudah lewat
-      if (current_date > oexp) {
-        return res.status(400).send('Key expired');
-      } else {
-        return res.status(200).send('Valid');
-      }
-    } else {
-      return res.status(200).send('You are logged in as admin');
+        if (!result) {
+            return res.status(400).send('Wrong key');
+        }
+
+        const [okey, oname, oexp, ostatus] = result.split(',');
+
+        if (ostatus !== "admin") {
+            // Fetch current date
+            const currentDateResponse = await axios.get(apiUrl);
+            const currentDate = currentDateResponse.data;
+
+            if (currentDate > oexp) {
+                return res.status(400).send('Key expired');
+            } else {
+                return res.status(200).send('Valid');
+            }
+        } else {
+            return res.status(200).send('You are logged in as admin');
+        }
+    } catch (error) {
+        console.error('Error processing request:', error.message);
+        return res.status(500).send('Error processing request');
     }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).send('Internal Server Error');
-  }
 }
