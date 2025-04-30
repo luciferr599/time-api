@@ -1,7 +1,6 @@
-// api/main.js
+// api/validator.js
 
 export default async function handler(req, res) {
-  // Mengambil parameter query input_token dan gistId
   const { input_token, gistId } = req.query;
 
   // Validasi parameter input_token dan gistId
@@ -13,11 +12,11 @@ export default async function handler(req, res) {
   const timeApi = 'https://time-api-indol.vercel.app/api/date.js';
 
   try {
-    // Mengambil string database dari keyViewerApi
+    // Mengambil string database dari keyViewerApi sebagai raw text (CSV)
     const response = await fetch(keyViewerApi);
-    const stringDatabase = await response.text(); // Mendapatkan respons sebagai teks, bukan JSON
+    const stringDatabase = await response.text(); // Mendapatkan data dalam format raw text (CSV)
 
-    // Mencari baris yang cocok dengan input_token
+    // Mencari baris yang sesuai dengan input_token
     const result = stringDatabase.split('\n').find(line => line.startsWith(input_token));
     if (!result) {
       return res.status(400).send('Wrong key');
